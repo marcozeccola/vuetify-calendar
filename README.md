@@ -1,5 +1,7 @@
 # vuetify-calendar
 
+Simple CRUD calendar sistem with vue.js vuetify material framework and firebase.
+
 ## Project setup
 ```
 npm install

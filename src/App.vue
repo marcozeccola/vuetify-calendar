@@ -1,26 +1,19 @@
 <template>
-  <v-app>
-    <v-content>
-      <Calendar>
-
-      </Calendar>
-    </v-content>
-  </v-app>
+  <div id="app" class="content" >
+    <router-view/>
+  </div>
 </template>
 
 <script>
-
-import Calendar from './components/Calendar';
-
 export default {
   name: 'App',
 
-  components: {
-    Calendar,
-  },
+
 
   data: () => ({
     //
+    
+
   }),
 };
 </script>

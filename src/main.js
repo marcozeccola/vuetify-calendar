@@ -4,13 +4,15 @@ import vuetify from './plugins/vuetify';
 import VueTextareaAutosize from 'vue-textarea-autosize';
 import firebase from 'firebase/app';
 import 'firebase/firestore';
-
+import VueRouter from 'vue-router'
+import router from './router'
+Vue.use(VueRouter)
 Vue.use(VueTextareaAutosize);
 Vue.config.productionTip = false
 
 //ANCHOR credenziali  firebase applicazione 
 firebase.initializeApp({
-  aapiKey: "AIzaSyCP1-a2ZeiG-ofbPbhbbAOUm9yDBUq41Hk",
+  apiKey: "AIzaSyCP1-a2ZeiG-ofbPbhbbAOUm9yDBUq41Hk",
   authDomain: "vuetify-calendar-f0ad7.firebaseapp.com",
   databaseURL: "https://vuetify-calendar-f0ad7.firebaseio.com",
   projectId: "vuetify-calendar-f0ad7",
@@ -22,8 +24,8 @@ firebase.initializeApp({
 
 //ANCHOR riferimento generale al database
 export const db = firebase.firestore();
-
 new Vue({
   vuetify,
+  router,
   render: h => h(App)
 }).$mount('#app')

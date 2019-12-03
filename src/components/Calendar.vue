@@ -1,12 +1,14 @@
-<template>
+<!--FIXME sistemare problema grafica vuetify-->
+<!--TODO log out-->
+<template >
     <v-row class="fill-height">
         <v-col>
             <v-sheet height="64">
                 <v-toolbar flat color="white">
-                    <v-btn color="primary" dark @click.stop="dialog = true">
+                    <v-btn color="primary" dark @click.stop="dialog = true" data-app="true">
                         NUOVO EVENTO
                     </v-btn>
-                    <v-btn outlined class="mr-4" @click="setToday">
+                    <v-btn outlined  @click="setToday" class="ml-4">
                         OGGI
                     </v-btn>
                     <v-btn fab text small @click="prev">
@@ -17,7 +19,7 @@
                     </v-btn>
                     <v-toolbar-title>{{ title }}</v-toolbar-title>
                     <div class="flex-grow-1"></div>
-                    <v-menu bottom right>
+                    <v-menu bottom right >
                         <template v-slot:activator="{ on }">
                             <v-btn outlined v-on="on">
                                 <span>{{ typeToLabel[type] }}</span>
@@ -26,7 +28,7 @@
                         </template>
                         <v-list>
                             <v-list-item @click="type = 'day'">
-                                <v-list-item-title>Mese</v-list-item-title>
+                                <v-list-item-title>Giorno</v-list-item-title>
                             </v-list-item>
                             <v-list-item @click="type = 'week'">
                                 <v-list-item-title>Settimana</v-list-item-title>
@@ -49,10 +51,12 @@
                             <v-text-field v-model="name" type="text" label="nome dell'evento"></v-text-field>
                             <v-text-field v-model="details" type="text" label="dettagli"></v-text-field>
                             <v-text-field v-model="start" type="date" label="inizio"></v-text-field>
+                            <v-text-field v-model="starthour" type="time" label="inizio"></v-text-field>
                             <v-text-field v-model="end" type="date" label="fine"></v-text-field>
+                            <v-text-field v-model="endhour" type="time" label="fine"></v-text-field>
                             <v-text-field v-model="color" type="color" label="colore(clicca per la palette)">
                             </v-text-field>
-                            <v-btn type="submit" color="primary" class="mr-4" @click.stop="dialog = false">
+                            <v-btn type="submit" color="cyan accent-4" class="mr-4" @click.stop="dialog = false">
                                 CREA EVENTO
                             </v-btn>
                         </v-form>
@@ -67,10 +71,12 @@
                             <v-text-field v-model="name" type="text" label="nome dell'evento"></v-text-field>
                             <v-text-field v-model="details" type="text" label="dettagli"></v-text-field>
                             <v-text-field v-model="start" type="date" label="inizio"></v-text-field>
+                            <v-text-field v-model="starthour" type="time" label="inizio"></v-text-field>
                             <v-text-field v-model="end" type="date" label="fine"></v-text-field>
+                            <v-text-field v-model="endhour" type="time" label="fine"></v-text-field>
                             <v-text-field v-model="color" type="color" label="colore(clicca per la palette)">
                             </v-text-field>
-                            <v-btn type="submit" color="primary" class="mr-4" @click.stop="dialog = false">
+                            <v-btn type="submit" color="cyan accent-4" class="mr-4" @click.stop="dialog = false">
                                 CREA EVENTO
                             </v-btn>
                         </v-form>
@@ -79,11 +85,11 @@
             </v-dialog>
 
             <v-sheet height="600">
-                <v-calendar ref="calendar" v-model="focus" color="primary" :events="events" :event-color="getEventColor"
+                <v-calendar ref="calendar" v-model="focus" color="cyan accent-4 " :events="events" :event-color="getEventColor"
                     :event-margin-bottom="3" :now="today" :type="type" @click:event="showEvent" @click:more="viewDay"
-                    @click:date="setDialogDate" @change="updateRange"></v-calendar>
-                <v-menu v-model="selectedOpen" :close-on-content-click="false" :activator="selectedElement" full-width
-                    offset-x>
+                    @click:date="viewDay" @change="updateRange"></v-calendar>
+                   
+                <v-menu v-model="selectedOpen" :close-on-content-click="false" :activator="selectedElement" full-width="true" offset-x>
                     <v-card color="grey lighten-4" :width="350" flat>
                         <v-toolbar :color="selectedEvent.color" dark>
                             <v-btn @click="deleteEvent(selectedEvent.id)" icon>
@@ -99,7 +105,7 @@
                             </form>
                             <form v-else>
                                 <textarea-autosize v-model="selectedEvent.details" type="text" style="width: 100%"
-                                    :min-height="100" placeholder="add note">
+                                    :min-height="100" placeholder="aggiungi dettagli">
                                 </textarea-autosize>
                             </form>
                         </v-card-text>
@@ -124,9 +130,7 @@
 </template>
 
 <script>
-import {
-    db
-} from '@/main';
+import { db } from '@/main';
 export default {
     data: () => ({
         today: new Date().toISOString().substr(0, 10),
@@ -142,6 +146,8 @@ export default {
         name: null,
         details: null,
         start: null,
+        starthour : "00:00",
+        endhour: "24:00",
         end: null,
         color: '#1976D2',
         currentlyEditing: null,
@@ -150,7 +156,9 @@ export default {
         dialog: false,
         selectedEvent: {},
         selectedElement: null,
-        selectedOpen: false
+        selectedOpen: false,
+        dialogDate:false,
+        
     }),
     //al caricamento della pagina
     mounted() {
@@ -226,8 +234,8 @@ export default {
                 await db.collection('eventi').add({
                     name: this.name,
                     details: this.details,
-                    start: this.start,
-                    end: this.end,
+                    start: this.start +  " "+this.starthour,
+                    end: this.end + " "+ this.endhour,
                     color: this.color
                 });
                 this.getEvents();
@@ -250,7 +258,7 @@ export default {
             this.selectedOpen = false;
             this.getEvents();
         },
-        //al click del giorno o di more(quando ci sono tanti eveti in un giorno)
+        //al click del giorno, di more(quando ci sono tanti eveti in un giorno) o dell' opzione giorno
         viewDay({
             date
         }) {

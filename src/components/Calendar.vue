@@ -1,4 +1,3 @@
-<!--FIXME sistemare problema grafica vuetify-->
 <!--TODO log out-->
 <template >
     <v-row class="fill-height">

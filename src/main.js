@@ -22,6 +22,7 @@ firebase.initializeApp({
 
 });
 
+
 //ANCHOR riferimento generale al database
 export const db = firebase.firestore();
 new Vue({

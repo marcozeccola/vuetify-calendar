@@ -6,8 +6,11 @@ import firebase from 'firebase/app';
 import 'firebase/firestore';
 import VueRouter from 'vue-router'
 import router from './router'
+import { firestorePlugin } from 'vuefire'
+
+Vue.use(firestorePlugin)
 Vue.use(VueRouter)
-Vue.use(VueTextareaAutosize);
+Vue.use(VueTextareaAutosize)
 Vue.config.productionTip = false
 
 //ANCHOR credenziali  firebase applicazione 

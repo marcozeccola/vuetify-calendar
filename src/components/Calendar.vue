@@ -5,7 +5,7 @@
             <v-sheet height="64">
                 <v-toolbar flat color="white">
                     <v-btn color="primary" dark @click.stop="dialog = true" data-app="true">
-                        NUOVO EVENTO
+                        NUOVO EVENTO 
                     </v-btn>
                     <v-btn outlined  @click="setToday" class="ml-4">
                         OGGI
@@ -129,7 +129,9 @@
 </template>
 
 <script>
+
 import { db } from '@/main';
+import firebase from 'firebase';
 export default {
     data: () => ({
         today: new Date().toISOString().substr(0, 10),
@@ -156,8 +158,7 @@ export default {
         selectedEvent: {},
         selectedElement: null,
         selectedOpen: false,
-        dialogDate:false,
-        
+        dialogDate:false
     }),
     //al caricamento della pagina
     mounted() {
@@ -173,16 +174,15 @@ export default {
                 return ''
             }
 
-            const startMonth = this.monthFormatter(start)
+             const startMonth = this.monthFormatter(start)
             const endMonth = this.monthFormatter(end)
             const suffixMonth = startMonth === endMonth ? '' : endMonth
-
             const startYear = start.year
             const endYear = end.year
             const suffixYear = startYear === endYear ? '' : endYear
-
             const startDay = start.day + this.degree(start.day)
             const endDay = end.day + this.degree(end.day)
+
 
             switch (this.type) {
                 case 'month':
@@ -205,36 +205,30 @@ export default {
     methods: {
         
         //ANCHOR push delle collections nell'array events
-        async getEvents() {
+           async getEvents(){
             //con await per far terminare la chiamata asincrona, per fare in modo che la promise ritorni il risultato
-            let snapshot = await db.collection('eventi').get();
+          
+            let user = firebase.auth().currentUser;
+            let snapshot = await db.collection('users').where('id', '==',user.uid).get();
             let events = [];
             snapshot.forEach(doc => {
                 let appData = doc.data();
                 appData.id = doc.id;
                 //inserisce nell' array degli eventi una serie di oggetti corrispondenti alle collections del db
                 events.push(appData);
-            });
+            }); 
             this.events = events;
         },
-        //ANCHOR Update
-        async updateEvent(event) {
-            //update della collection 
-            await db.collection('eventi').doc(this.currenlyEditing).update({
-                details: event.details
-            });
-            //reset
-            this.selectedOpen = false;
-            this.currentlyEditing = null;
-        },
         //ANCHOR Write
-        async addEvent() {
+         async addEvent() {
             if (this.name && this.start && this.end) {
-                await db.collection('eventi').add({
+                let user = firebase.auth().currentUser;
+                 await db.collection('users').add({
+                    id: user.uid,
                     name: this.name,
                     details: this.details,
-                    start: this.start +  " "+this.starthour,
-                    end: this.end + " "+ this.endhour,
+                    start: this.start +" "+this.starthour,
+                    end: this.end +" "+ this.endhour,
                     color: this.color
                 });
                 this.getEvents();
@@ -246,12 +240,23 @@ export default {
 
             } else {
                 alert('nome, start e end sono obbligatori');
-
             }
+        },
+        
+        
+        //ANCHOR Update
+         async updateEvent(event) {
+            //update della collection 
+             await db.collection('users').where('id', '==',firebase.auth().currentUser.uid).doc(this.currenlyEditing).update({
+                details: event.details
+            });
+            //reset
+            this.selectedOpen = false;
+            this.currentlyEditing = null;
         },
         //ANCHOR delete
         async deleteEvent(event) {
-            await db.collection('eventi').doc(event).delete();
+            await db.collection('users').where('id', '==',firebase.auth().currentUser.uid).doc(event).delete();
 
             //reset
             this.selectedOpen = false;

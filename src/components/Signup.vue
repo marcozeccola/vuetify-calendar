@@ -1,11 +1,10 @@
 <template>
 
-
     <v-form ref="form" v-model="valid" :lazy-validation="lazy">
         <v-btn color="warning">
             <router-link to="/login" class="a">
                 vai al Login
-            </router-link>
+            </router-link> 
         </v-btn>
 
         <v-text-field v-model="email" :rules="emailRules" label="E-mail" required></v-text-field>
@@ -28,10 +27,8 @@
 </template>
 <script>
 
-
-   
-  import firebase from 'firebase'
-  export default {
+  import firebase from 'firebase';
+  export default{
     name: 'signup',
     
     data () {
@@ -60,9 +57,11 @@
     },
     methods: {
       signUp() {
-     firebase.auth().createUserWithEmailAndPassword(this.email, this.password).then((user) => {
-         alert(`ciao ${user}`);
-         this.$router.replace('/login');
+        
+        firebase.auth().createUserWithEmailAndPassword(this.email, this.password).then((user) => {
+            user = firebase.auth().currentUser;
+            alert(`ciao ${user.email}`);
+            this.$router.replace('/login');
 
      }).catch((err) => {
          alert(err.message)

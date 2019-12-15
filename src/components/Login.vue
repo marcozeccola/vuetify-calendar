@@ -40,9 +40,11 @@ export default{
             firebase.auth().signInWithEmailAndPassword(this.email, this.password).then((user) => {
                 
                 user = firebase.auth().currentUser;
-                
-                alert(`ciao ${user.uid}`);
-                this.$router.replace('Calendar');
+                if(user.uid == "YWcgAgaqOBWEd7AuOJyRAwh3SkK2"){
+                    this.$router.replace('Admin');
+                }else{
+                    this.$router.replace('Calendar');
+                }
             }).catch((err) => {
                 alert(err.message)
             })

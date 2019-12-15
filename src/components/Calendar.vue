@@ -209,7 +209,7 @@ export default {
             //con await per far terminare la chiamata asincrona, per fare in modo che la promise ritorni il risultato
           
             let user = firebase.auth().currentUser;
-            let snapshot = await db.collection('users').where('id', '==',user.uid).get();
+            let snapshot = await db.collection('eventi').where('id', '==',user.uid).get();
             let events = [];
             snapshot.forEach(doc => {
                 let appData = doc.data();
@@ -223,8 +223,9 @@ export default {
          async addEvent() {
             if (this.name && this.start && this.end) {
                 let user = firebase.auth().currentUser;
-                 await db.collection('users').add({
+                 await db.collection('eventi').add({
                     id: user.uid,
+                    type: "Normal",
                     name: this.name,
                     details: this.details,
                     start: this.start +" "+this.starthour,
@@ -247,7 +248,7 @@ export default {
         //ANCHOR Update
          async updateEvent(event) {
             //update della collection 
-             await db.collection('users').where('id', '==',firebase.auth().currentUser.uid).doc(this.currenlyEditing).update({
+             await db.collection('eventi').doc(this.currenlyEditing).update({
                 details: event.details
             });
             //reset
@@ -256,7 +257,7 @@ export default {
         },
         //ANCHOR delete
         async deleteEvent(event) {
-            await db.collection('users').where('id', '==',firebase.auth().currentUser.uid).doc(event).delete();
+            await db.collection('eventi').doc(event).delete();
 
             //reset
             this.selectedOpen = false;

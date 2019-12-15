@@ -5,6 +5,7 @@ import firebase from 'firebase'
 import Calendar from '../components/Calendar'
 import Login from '../components/Login'
 import SignUp from '../components/Signup'
+import Admin from '../components/Admin'
 
 Vue.use(Router)
 
@@ -23,6 +24,14 @@ let router = new Router({
       path: '/signup',
       name: 'SignUp',
       component: SignUp
+    },
+    {
+      path: '/admin',
+      name: 'Admin',
+      component: Admin,
+      meta: {
+        requiresAuth: true
+      }
     },
     {
       path: '/calendar',

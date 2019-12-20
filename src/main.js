@@ -7,10 +7,12 @@ import 'firebase/firestore';
 import VueRouter from 'vue-router'
 import router from './router'
 import { firestorePlugin } from 'vuefire'
+import feather from 'vue-icon'
 
 Vue.use(firestorePlugin)
 Vue.use(VueRouter)
 Vue.use(VueTextareaAutosize)
+Vue.use(feather,'v-icon')
 Vue.config.productionTip = false
 
 //ANCHOR credenziali  firebase applicazione 

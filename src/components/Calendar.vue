@@ -1,25 +1,26 @@
 <!--TODO log out-->
-<template >
+<template>
     <v-row class="fill-height">
         <v-col>
             <v-sheet height="64">
                 <v-toolbar flat color="white">
                     <v-btn color="primary" dark @click.stop="dialog = true" data-app="true">
-                        NUOVO EVENTO 
+                        crea evento
                     </v-btn>
-                    <v-btn outlined  @click="setToday" class="ml-4">
+                    <v-btn outlined @click="setToday" class="hide">
                         OGGI
                     </v-btn>
+                    <v-spacer />
                     <v-btn fab text small @click="prev">
                         <v-icon small>mdi-chevron-left</v-icon>
                     </v-btn>
                     <v-btn fab text small @click="next">
                         <v-icon small>mdi-chevron-right</v-icon>
                     </v-btn>
-                    <v-toolbar-title>{{ title }}</v-toolbar-title>
+                    <v-toolbar-title class="hide">{{ title }}</v-toolbar-title>
                     <div class="flex-grow-1"></div>
-                    <v-menu bottom right >
-                        <template v-slot:activator="{ on }">
+                    <v-menu bottom right>
+                        <template v-slot:activator="{ on }" >
                             <v-btn outlined v-on="on">
                                 <span>{{ typeToLabel[type] }}</span>
                                 <v-icon right>mdi-menu-down</v-icon>
@@ -83,12 +84,14 @@
                 </v-card>
             </v-dialog>
 
-            <v-sheet height="600">
-                <v-calendar ref="calendar" v-model="focus" color="cyan accent-4 " :events="events" :event-color="getEventColor"
-                    :event-margin-bottom="3" :now="today" :type="type" @click:event="showEvent" @click:more="viewDay"
-                    @click:date="viewDay" @change="updateRange"></v-calendar>
-                   
-                <v-menu v-model="selectedOpen" :close-on-content-click="false" :activator="selectedElement" full-width="true" offset-x>
+            <v-sheet height="100vh">
+                <v-calendar ref="calendar" v-model="focus" color="cyan accent-4 " :events="events"
+                    :event-color="getEventColor" :event-margin-bottom="3" :now="today" :type="type"
+                    @click:event="showEvent" @click:more="viewDay" @click:date="viewDay" @change="updateRange">
+                </v-calendar>
+
+                <v-menu v-model="selectedOpen" :close-on-content-click="false" :activator="selectedElement"
+                    full-width="true" offset-x>
                     <v-card color="grey lighten-4" :width="350" flat>
                         <v-toolbar :color="selectedEvent.color" dark>
                             <v-btn @click="deleteEvent(selectedEvent.id)" icon>
@@ -129,202 +132,210 @@
 </template>
 
 <script>
-
-import { db } from '@/main';
-import firebase from 'firebase';
-export default {
-    data: () => ({
-        today: new Date().toISOString().substr(0, 10),
-        focus: new Date().toISOString().substr(0, 10),
-        type: 'month',
-        typeToLabel: {
-            month: 'Mese',
-            week: 'Settimana',
-            day: 'Giorno',
-            '4day': '4 Giorni',
-        },
-        //ANCHOR settings dei vari campi
-        name: null,
-        details: null,
-        start: null,
-        starthour : "00:00",
-        endhour: "24:00",
-        end: null,
-        color: '#1976D2',
-        currentlyEditing: null,
-        //documents da firebase
-        events: [],
-        dialog: false,
-        selectedEvent: {},
-        selectedElement: null,
-        selectedOpen: false,
-        dialogDate:false
-    }),
-    //al caricamento della pagina
-    mounted() {
-        this.getEvents();
-    },
-    computed: {
-        title() {
-            const {
-                start,
-                end
-            } = this
-            if (!start || !end) {
-                return ''
-            }
-
-             const startMonth = this.monthFormatter(start)
-            const endMonth = this.monthFormatter(end)
-            const suffixMonth = startMonth === endMonth ? '' : endMonth
-            const startYear = start.year
-            const endYear = end.year
-            const suffixYear = startYear === endYear ? '' : endYear
-            const startDay = start.day + this.degree(start.day)
-            const endDay = end.day + this.degree(end.day)
-
-
-            switch (this.type) {
-                case 'month':
-                    return `${startMonth} ${startYear}`
-                case 'week':
-                case '4day':
-                    return `${startDay} ${startMonth}  ${startYear} - ${endDay} ${suffixMonth}  ${suffixYear}`
-                case 'day':
-                    return `${startDay} ${startMonth}  ${startYear}`
-            }
-            return '';
-        },
-        monthFormatter() {
-            return this.$refs.calendar.getFormatter({
-                timeZone: 'UTC',
-                month: 'long',
-            })
-        },
-    },
-    methods: {
-        
-        //ANCHOR push delle collections nell'array events
-           async getEvents(){
-            //con await per far terminare la chiamata asincrona, per fare in modo che la promise ritorni il risultato
-          
-            let user = firebase.auth().currentUser;
-            let snapshot = await db.collection('eventi').where('id', '==',user.uid).get();
-            let events = [];
-            snapshot.forEach(doc => {
-                let appData = doc.data();
-                appData.id = doc.id;
-                //inserisce nell' array degli eventi una serie di oggetti corrispondenti alle collections del db
-                events.push(appData);
-            }); 
-            this.events = events;
-        },
-        //ANCHOR Write
-         async addEvent() {
-            if (this.name && this.start && this.end) {
-                let user = firebase.auth().currentUser;
-                 await db.collection('eventi').add({
-                    id: user.uid,
-                    type: "Normal",
-                    name: this.name,
-                    details: this.details,
-                    start: this.start +" "+this.starthour,
-                    end: this.end +" "+ this.endhour,
-                    color: this.color
-                });
-                this.getEvents();
-                this.name = "";
-                this.details = "";
-                this.start = "";
-                this.end = "";
-                this.color = "";
-
-            } else {
-                alert('nome, start e end sono obbligatori');
-            }
-        },
-        
-        
-        //ANCHOR Update
-         async updateEvent(event) {
-            //update della collection 
-             await db.collection('eventi').doc(this.currenlyEditing).update({
-                details: event.details
-            });
-            //reset
-            this.selectedOpen = false;
-            this.currentlyEditing = null;
-        },
-        //ANCHOR delete
-        async deleteEvent(event) {
-            await db.collection('eventi').doc(event).delete();
-
-            //reset
-            this.selectedOpen = false;
+    import {
+        db
+    } from '@/main';
+    import firebase from 'firebase';
+    export default {
+        data: () => ({
+            today: new Date().toISOString().substr(0, 10),
+            focus: new Date().toISOString().substr(0, 10),
+            type: 'month',
+            typeToLabel: {
+                month: 'Mese',
+                week: 'Settimana',
+                day: 'Giorno',
+                '4day': '4 Giorni',
+            },
+            //ANCHOR settings dei vari campi
+            name: null,
+            details: null,
+            start: null,
+            starthour: "00:00",
+            endhour: "24:00",
+            end: null,
+            color: '#1976D2',
+            currentlyEditing: null,
+            //documents da firebase
+            events: [],
+            dialog: false,
+            selectedEvent: {},
+            selectedElement: null,
+            selectedOpen: false,
+            dialogDate: false
+        }),
+        //al caricamento della pagina
+        mounted() {
             this.getEvents();
         },
-        //al click del giorno, di more(quando ci sono tanti eveti in un giorno) o dell' opzione giorno
-        viewDay({
-            date
-        }) {
-            this.focus = date
-            this.type = 'day'
-        },
-        //setta il colore dall'oggetto del db
-        getEventColor(event) {
-            return event.color
-        },
-        //al click di Today
-        setToday() {
-            //mette focus a today
-            this.focus = this.today
-        },
-        //pagina precedente
-        prev() {
-            this.$refs.calendar.prev()
-        },
-        //pagina successiva
-        next() {
-            this.$refs.calendar.next()
-        },
-        editEvent(event) {
-            this.currentlyEditing = event.id;
+        computed: {
+            title() {
+                const {
+                    start,
+                    end
+                } = this
+                if (!start || !end) {
+                    return ''
+                }
 
-        },
-        //ANCHOR mostra dialog dell'evento
-        showEvent({
-            nativeEvent,
-            event
-        }) {
-            const open = () => {
-                //assegna alle variabili del dialog l'evento dal db e l'elemento del DOM premuto
-                this.selectedEvent = event;
-                this.selectedElement = nativeEvent.target;
-                //dilay di apertura
-                setTimeout(() => this.selectedOpen = true, 10)
-            }
-            //se si switcha da un event
-            if (this.selectedOpen) {
-                this.selectedOpen = false
-                setTimeout(open, 10)
-            } else {
-                open()
-            }
-            nativeEvent.stopPropagation()
-        },
+                const startMonth = this.monthFormatter(start)
+                const endMonth = this.monthFormatter(end)
+                const suffixMonth = startMonth === endMonth ? '' : endMonth
+                const startYear = start.year
+                const endYear = end.year
+                const suffixYear = startYear === endYear ? '' : endYear
+                const startDay = start.day + this.degree(start.day)
+                const endDay = end.day + this.degree(end.day)
 
-        updateRange({
-            start,
-            end
-        }) {
 
-            this.start = start
-            this.end = end
+                switch (this.type) {
+                    case 'month':
+                        return `${startMonth} ${startYear}`
+                    case 'week':
+                    case '4day':
+                        return `${startDay} ${startMonth}  ${startYear} - ${endDay} ${suffixMonth}  ${suffixYear}`
+                    case 'day':
+                        return `${startDay} ${startMonth}  ${startYear}`
+                }
+                return '';
+            },
+            monthFormatter() {
+                return this.$refs.calendar.getFormatter({
+                    timeZone: 'UTC',
+                    month: 'long',
+                })
+            },
         },
-        degree() {
-            return '°'
-        },
-    }
-};
-        
+        methods: {
+
+            //ANCHOR push delle collections nell'array events
+            async getEvents() {
+                //con await per far terminare la chiamata asincrona, per fare in modo che la promise ritorni il risultato
+
+                let user = firebase.auth().currentUser;
+                let snapshot = await db.collection('eventi').where('id', '==', user.uid).get();
+                let events = [];
+                snapshot.forEach(doc => {
+                    let appData = doc.data();
+                    appData.id = doc.id;
+                    //inserisce nell' array degli eventi una serie di oggetti corrispondenti alle collections del db
+                    events.push(appData);
+                });
+                this.events = events;
+            },
+            //ANCHOR Write
+            async addEvent() {
+                if (this.name && this.start && this.end) {
+                    let user = firebase.auth().currentUser;
+                    await db.collection('eventi').add({
+                        id: user.uid,
+                        type: "Normal",
+                        name: this.name,
+                        details: this.details,
+                        start: this.start + " " + this.starthour,
+                        end: this.end + " " + this.endhour,
+                        color: this.color
+                    });
+                    this.getEvents();
+                    this.name = "";
+                    this.details = "";
+                    this.start = "";
+                    this.end = "";
+                    this.color = "";
+
+                } else {
+                    alert('nome, start e end sono obbligatori');
+                }
+            },
+
+
+            //ANCHOR Update
+            async updateEvent(event) {
+                let user = firebase.auth().currentUser;
+                //FIXME non funziona update della collection 
+                await db.collection('eventi').where('id', '==', user.uid).doc(this.currenlyEditing).update({
+                    details: event.details
+                });
+                //reset
+                this.selectedOpen = false;
+                this.currentlyEditing = null;
+            },
+            //ANCHOR delete
+            async deleteEvent(event) {
+                await db.collection('eventi').doc(event).delete();
+
+                //reset
+                this.selectedOpen = false;
+                this.getEvents();
+            },
+            //al click del giorno, di more(quando ci sono tanti eveti in un giorno) o dell' opzione giorno
+            viewDay({
+                date
+            }) {
+                this.focus = date
+                this.type = 'day'
+            },
+            //setta il colore dall'oggetto del db
+            getEventColor(event) {
+                return event.color
+            },
+            //al click di Today
+            setToday() {
+                //mette focus a today
+                this.focus = this.today
+            },
+            //pagina precedente
+            prev() {
+                this.$refs.calendar.prev()
+            },
+            //pagina successiva
+            next() {
+                this.$refs.calendar.next()
+            },
+            editEvent(event) {
+                this.currentlyEditing = event.id;
+
+            },
+            //ANCHOR mostra dialog dell'evento
+            showEvent({
+                nativeEvent,
+                event
+            }) {
+                const open = () => {
+                    //assegna alle variabili del dialog l'evento dal db e l'elemento del DOM premuto
+                    this.selectedEvent = event;
+                    this.selectedElement = nativeEvent.target;
+                    //dilay di apertura
+                    setTimeout(() => this.selectedOpen = true, 10)
+                }
+                //se si switcha da un event
+                if (this.selectedOpen) {
+                    this.selectedOpen = false
+                    setTimeout(open, 10)
+                } else {
+                    open()
+                }
+                nativeEvent.stopPropagation()
+            },
+
+            updateRange({
+                start,
+                end
+            }) {
+
+                this.start = start
+                this.end = end
+            },
+            degree() {
+                return '°'
+            },
+        }
+    };
 </script>
+<style scoped>
+    @media only screen and (max-width: 750px) {
+        .hide {
+            display: none;
+        }
+    }
+</style>

@@ -1,13 +1,12 @@
 <!--TODO log out-->
-<!--TODO stampare uids e emails-->
 
-<template >
+<template>
     <v-row class="fill-height">
         <v-col>
             <v-sheet height="64">
                 <v-toolbar flat color="white">
                     <v-btn color="primary" dark @click.stop="dialog = true" data-app="true">
-                        NUOVO EVENTO 
+                        NUOVO EVENTO
                     </v-btn>
                 </v-toolbar>
             </v-sheet>
@@ -19,6 +18,24 @@
                 </v-toolbar>
             </v-sheet>
 
+            <v-simple-table>
+                <template v-slot:default>
+                    <thead>
+                        <tr>
+                            <th class="text-left">Uid</th>
+                            <th class="text-left">E-Mail</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="user in users" :key="user.uid">
+                            <td>{{ user.uid }}</td>
+                            <td>{{ user.email }}</td>
+                        </tr>
+                    </tbody>
+                </template>
+            </v-simple-table>
+
+            
 
             <v-dialog v-model="dialog" max-width="500">
                 <v-card>
@@ -41,97 +58,128 @@
                 </v-card>
             </v-dialog>
 
-            
+
         </v-col>
     </v-row>
 </template>
 
 <script>
+    import {
+        db
+    } from '@/main';
+    //import firebase from 'firebase';
+    export default {
+        name: 'Admin',
+        data: () => ({
 
-import { db } from '@/main';
-export default {
-    name: 'Admin',
-    data: () => ({
-        
-        //ANCHOR settings dei vari campi
-        uid: null,
-        name: null,
-        details: null,
-        start: null,
-        starthour : "00:00",
-        endhour: "24:00",
-        end: null,
-        color: '#1976D2',
-        currentlyEditing: null,
-        //documents da firebase
-        events: [],
-        dialog: false,
-        selectedEvent: {},
-        selectedElement: null,
-        selectedOpen: false,
-        dialogDate:false
-    }),
-    computed: {
-        title() {
-            const {
-                start,
-                end
-            } = this
-            if (!start || !end) {
-                return ''
-            }
-            return '';
+            //ANCHOR settings dei vari campi
+            uid: null,
+            name: null,
+            details: null,
+            start: null,
+            starthour: "00:00",
+            endhour: "24:00",
+            end: null,
+            color: '#1976D2',
+            currentlyEditing: null,
+            //documents da firebase
+            users: [],
+            events: [],
+            dialog: false,
+            selectedEvent: {},
+            selectedElement: null,
+            selectedOpen: false,
+            dialogDate: false
+        }),
+        mounted() {
+            this.getusers();
         },
-    },
-    methods: {
-        
-        //ANCHOR Write
-         async addEvent() {
-            if (this.name && this.start && this.end) {
-                 await db.collection('users').add({
-                    id: this.uid,
-                    type: "Special",
-                    name: this.name,
-                    details: this.details,
-                    start: this.start +" "+this.starthour,
-                    end: this.end +" "+ this.endhour,
-                    color: this.color
+        computed: {
+            title() {
+                const {
+                    start,
+                    end
+                } = this
+                if (!start || !end) {
+                    return ''
+                }
+                return '';
+            },
+        },
+        methods: {
+            //ANCHOR push delle collections nell'array users
+            async getusers() {
+                //con await per far terminare la chiamata asincrona, per fare in modo che la promise ritorni il risultato
+
+                //let user = firebase.auth().currentUser;
+                let snapshot = await db.collection('uids').get();
+                let users = [];
+                snapshot.forEach(doc => {
+                    let appData = doc.data();
+                    appData.id = doc.id;
+                    users.push(appData);
                 });
-                this.getEvents();
-                this.name = "";
-                this.details = "";
-                this.start = "";
-                this.end = "";
-                this.color = "";
+                return this.users = users;
+            },
 
-            } else {
-                alert('nome, start e end sono obbligatori');
+            async getEvents() {
+                let snapshot = await db.collection('eventi').get();
+                let events = [];
+                snapshot.forEach(doc => {
+                    let appData = doc.data();
+                    appData.id = doc.id;
+                    events.push(appData);
+                });
+                return this.events = events;
+            },
+
+            //ANCHOR Write
+            async addEvent() {
+                if (this.name && this.start && this.end) {
+                    await db.collection('users').add({
+                        id: this.uid,
+                        type: "Special",
+                        name: this.name,
+                        details: this.details,
+                        start: this.start + " " + this.starthour,
+                        end: this.end + " " + this.endhour,
+                        color: this.color
+                    });
+                    this.getusers();
+                    this.name = "";
+                    this.details = "";
+                    this.start = "";
+                    this.end = "";
+                    this.color = "";
+
+                } else {
+                    alert('nome, start e end sono obbligatori');
+                }
+            },
+            tocalendar() {
+                this.$router.replace('/login');
+            },
+            //ANCHOR mostra dialog dell'evento
+            showEvent({
+                nativeEvent,
+                event
+            }) {
+                const open = () => {
+                    //assegna alle variabili del dialog l'evento dal db e l'elemento del DOM premuto
+                    this.selectedEvent = event;
+                    this.selectedElement = nativeEvent.target;
+                    //delay di apertura
+                    setTimeout(() => this.selectedOpen = true, 10)
+                }
+                //se si switcha da un event
+                if (this.selectedOpen) {
+                    this.selectedOpen = false
+                    setTimeout(open, 10)
+                } else {
+                    open()
+                }
+                nativeEvent.stopPropagation()
             }
-        },
-        tocalendar(){
-            this.$router.replace('/login');
-        },
-        //ANCHOR mostra dialog dell'evento
-        showEvent({
-            nativeEvent,
-            event
-        }) {
-            const open = () => {
-                //assegna alle variabili del dialog l'evento dal db e l'elemento del DOM premuto
-                this.selectedEvent = event;
-                this.selectedElement = nativeEvent.target;
-                //delay di apertura
-                setTimeout(() => this.selectedOpen = true, 10)
-            }
-            //se si switcha da un event
-            if (this.selectedOpen) {
-                this.selectedOpen = false
-                setTimeout(open, 10)
-            } else {
-                open()
-            }
-            nativeEvent.stopPropagation()
-    }}
-};
-        
+        }
+    };
 </script>

@@ -1,29 +1,47 @@
+
 <template>
+    <v-content>
+        <v-container class="fill-height" fluid>
+            <v-row align="center" justify="center">
+                <v-col cols="12" sm="8" md="4">
+                    <v-card class="elevation-12">
 
-    <v-form ref="form" v-model="valid" :lazy-validation="lazy">
-        <v-btn color="warning">
-            <router-link to="/login" class="a">
-                vai al Login
-            </router-link> 
-        </v-btn>
+                        <v-toolbar color="primary" dark flat>
+                            <v-toolbar-title>SignUp </v-toolbar-title>
+                            <v-spacer />
+                            <v-toolbar-title>
+                            <router-link to="/login" class="a float-right">
+                                    Vai al Login
+                            </router-link>
+                            </v-toolbar-title>
+                            <v-spacer />
+                        </v-toolbar>
 
-        <v-text-field v-model="email" :rules="emailRules" label="E-mail" required></v-text-field>
+                        <v-card-text>
+                            <v-form>
+                                
+                                <v-text-field name="login"  :rules="emailRules" type="text" v-model="email"
+                                    label="E-mail" required />
+
+                                <v-text-field :rules="passRules" id="password" name="password" :counter="25"
+                                    label="Password" v-model="password" type="password" class="input" required />
+                                    
+                            </v-form>
+                        </v-card-text>
 
 
-        <v-text-field :counter="25" :rules="passRules" label="Password" v-model="password" type="password" class="input"
-            required></v-text-field>
-        <v-btn :disabled="!valid" color="success" class="mr-4">
-        </v-btn>
+                        <v-card-actions>
+                            <v-spacer />
+                            <v-btn color="primary" v-on:click="signUp"> SignUp</v-btn>
+                            <v-spacer />
+                            <v-btn color="error" class="mr-4" @click="reset">Reset</v-btn>
+                        </v-card-actions>
 
-        <v-btn color="error" class="mr-4" @click="reset">
-            Reset
-        </v-btn>
-
-        <v-btn color="warning" v-on:click="signUp">
-            Sign up
-        </v-btn>
-
-    </v-form>
+                    </v-card>
+                </v-col>
+            </v-row>
+        </v-container>
+    </v-content>
 </template>
 <script>
 
@@ -37,7 +55,7 @@
     return {
     email: '',
     password: '',
-    valid: true,
+    valid: false,
     pass: '',
     //validità password
     passRules: [
@@ -303,11 +321,6 @@
          alert(err.message)
      });
       },
-     validate(){
-         if (this.$refs.form.validate()) {
-             this.snackbar = true
-         }
-     },
      reset(){
          this.$refs.form.reset()
      }

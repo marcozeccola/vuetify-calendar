@@ -57,7 +57,7 @@
                 firebase.auth().signInWithEmailAndPassword(this.email, this.password).then((user) => {
 
                     user = firebase.auth().currentUser;
-                    if (user.uid == "YWcgAgaqOBWEd7AuOJyRAwh3SkK2") {
+                    if (user.uid == "tvcmO3QEUvPpDixZaOSBuoISNIc2") {
                         this.$router.replace('Admin');
                     } else {
                         this.$router.replace('Calendar');

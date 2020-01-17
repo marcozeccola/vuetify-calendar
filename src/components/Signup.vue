@@ -81,7 +81,7 @@
             user = firebase.auth().currentUser;
                 db.collection('uids').add({
                     uid: user.uid,
-                    email:user.email
+                    email:user.email 
                 });
                 db.collection('eventi').add({
                     id: user.uid,

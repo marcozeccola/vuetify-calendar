@@ -6,8 +6,8 @@ import Calendar from '../components/Calendar'
 import Login from '../components/Login'
 import SignUp from '../components/Signup'
 import Admin from '../components/Admin'
-
 Vue.use(Router)
+
 
 let router = new Router({
   routes: [

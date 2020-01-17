@@ -17,13 +17,13 @@ Vue.config.productionTip = false
 
 //ANCHOR credenziali  firebase applicazione 
 firebase.initializeApp({
-  apiKey: "AIzaSyCP1-a2ZeiG-ofbPbhbbAOUm9yDBUq41Hk",
-  authDomain: "vuetify-calendar-f0ad7.firebaseapp.com",
-  databaseURL: "https://vuetify-calendar-f0ad7.firebaseio.com",
-  projectId: "vuetify-calendar-f0ad7",
-  storageBucket: "vuetify-calendar-f0ad7.appspot.com",
-  messagingSenderId: "258412624133",
-  appId: "1:258412624133:web:12a7ab68c321a5d2a21f6c"
+  apiKey: "AIzaSyCBPZMZIHsk4vnKglQBTcSD7QjkJtjOZ20",
+    authDomain: "best-world-f594a.firebaseapp.com",
+    databaseURL: "https://best-world-f594a.firebaseio.com",
+    projectId: "best-world-f594a",
+    storageBucket: "best-world-f594a.appspot.com",
+    messagingSenderId: "149268880933",
+    appId: "1:149268880933:web:34640bdd316c760a8d69cc"
 
 });
 

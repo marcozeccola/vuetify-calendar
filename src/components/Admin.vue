@@ -1,5 +1,4 @@
 <!--TODO log out-->
-
 <template>
     <v-row class="fill-height">
         <v-col>
@@ -35,7 +34,7 @@
                 </template>
             </v-simple-table>
 
-            
+
 
             <v-dialog v-model="dialog" max-width="500">
                 <v-card>
